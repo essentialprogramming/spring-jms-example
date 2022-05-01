@@ -1,0 +1,37 @@
+HELP.md
+.gradle
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### Intelij Idea ###
+.idea/
+*.class
+.classpath
+.settings
+.project
+*.iml
+*.iws
+*.ipr
+.idea
+.DS_Store
+
+
+# Package Files #
+*.jar
+*.war
+*.ear
+
+package-lock.json
+
+
+# Ignore everything in this directory
+target/
+logs/
+node/
+node_modules
+
+# Generated files
+bundle.es6.js
+bundle.js
