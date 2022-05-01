@@ -1,0 +1,9 @@
+spring:
+   # Embedded ActiveMQ Configuration
+   activemq:
+       broker:
+          url: "tcp://0.0.0.0:61616"
+       in-memory: true
+       server:
+          active: true
+
