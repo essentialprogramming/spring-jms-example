@@ -18,7 +18,13 @@ public class MessageReplier extends QueueListener {
     @Value("${destination.queue.request}")
     private String requestQueue;
 
-
+    /**
+     * Entrypoint for Messages from the request queue.
+     * It checks if the message has exceeded the delivery count.
+     * When the delivery count is below 10 the message processing is started.
+     *
+     * @param message Message from the queue
+     */
     @JmsListener(destination = "${destination.queue.request}", containerFactory = "replyJmsListenerContainerFactory")
     public void onMessage(Message message, Session session) throws JMSException {
         readMessage((TextMessage) message, session);
