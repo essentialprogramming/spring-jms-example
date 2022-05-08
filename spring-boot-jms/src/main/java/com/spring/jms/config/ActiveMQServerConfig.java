@@ -28,12 +28,10 @@ public class ActiveMQServerConfig {
         log.info("Init Broker..");
 
         final BrokerService broker = new BrokerService();
-        broker.setPersistent(false);
-        broker.setUseJmx(true);
         broker.addConnector(brokerUrl);
+        broker.setPersistent(false);
+        broker.setUseShutdownHook(false);
 
         return broker;
     }
-
-
 }
