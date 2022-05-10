@@ -22,7 +22,7 @@ public class JmsController {
     private final MessageService messageService;
 
     @PostMapping("send")
-    @Operation(summary = "Send message", description = "Send a message",
+    @Operation(summary = "Send message", description = "This endpoint is for testing purposes only",
                 responses = {
                         @ApiResponse(responseCode = "200", description = "Returns 200 if message successfully sent",
                                 content = @Content(schema = @Schema(example = "{\"status\": \"ok\", ")))
@@ -33,7 +33,7 @@ public class JmsController {
     }
 
     @GetMapping("ping")
-    @Operation(summary = "Ping", description = "Ping",
+    @Operation(summary = "Ping", description = "This endpoint is for testing purposes only",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Returns 200 if ping was successful",
                             content = @Content(schema = @Schema(example = "{\"status\": \"ok\", ")))
@@ -45,7 +45,7 @@ public class JmsController {
 
 
     @PostMapping("sendAndReceive")
-    @Operation(summary = "Send message, wait for reply", description = "Send a message",
+    @Operation(summary = "Send message, wait for reply", description = "This endpoint is for testing purposes only",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Returns 200 if message successfully sent",
                             content = @Content(schema = @Schema(example = "{\"status\": \"ok\", ")))

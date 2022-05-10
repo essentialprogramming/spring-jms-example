@@ -27,6 +27,13 @@ public class MessageReceiver extends QueueListener {
         return countDownLatch;
     }
 
+    /**
+     * Entrypoint for Messages from the `sayHello` queue.
+     * It checks if the message has exceeded the delivery count.
+     * When the delivery count is below 10 the message processing is started.
+     *
+     * @param message Message from the queue
+     */
     @JmsListener(destination = "${destination.queue.hello}", containerFactory = "defaultJmsListenerContainerFactory")
     public void receiveMessage(Message message) {
         readMessage((TextMessage) message, null);

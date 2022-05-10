@@ -38,6 +38,7 @@ public class MessageSender {
             TextMessage textMessage = session.createTextMessage(message);
             textMessage.setJMSCorrelationID(NanoIdUtils.randomNanoId());
             textMessage.setJMSReplyTo(replyToDestination);
+            textMessage.setJMSType("REQUEST_REPLY");
             return textMessage;
         });
 

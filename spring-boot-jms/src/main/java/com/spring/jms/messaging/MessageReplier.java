@@ -40,16 +40,32 @@ public class MessageReplier extends QueueListener {
         }
     }
 
-    protected void processMessage(final String messageID, final String message,
+    protected void processMessage(final String correlationID, final String message,
                                   final Session session, final Destination replyToDestination) throws JMSException {
-        log.info("Received message : {}:{}", messageID, message);
+        log.info("Received message with JMSCorrelationID {} : {}", correlationID, message);
 
         // Send a reply message
         final MessageProducer replyDestination = session.createProducer(replyToDestination);
-        final TextMessage replyMsg = session.createTextMessage("Received: " + message);
-        replyMsg.setJMSCorrelationID(messageID);
+        final TextMessage replyMsg = handleMessage(message, session);
+        replyMsg.setJMSCorrelationID(correlationID);
         replyDestination.send(replyMsg);
 
         log.info("Sending reply message");
+    }
+
+    private TextMessage handleMessage(final String message, final Session session) throws JMSException {
+        final TextMessage replyMsg = session.createTextMessage("Received: " + message);
+        if (cannotProcessMessage(message)) {
+            return handleErrorMessage(message, session);
+        }
+        return replyMsg;
+    }
+
+    private boolean cannotProcessMessage(final String message) {
+        return false;
+    }
+
+    private TextMessage handleErrorMessage(final String message, final Session session) throws JMSException {
+        return session.createTextMessage("Error occurred during processing: " + message);
     }
 }
