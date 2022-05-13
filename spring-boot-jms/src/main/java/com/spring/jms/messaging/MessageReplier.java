@@ -26,13 +26,27 @@ public class MessageReplier extends QueueListener {
      * @param message Message from the queue
      */
     @JmsListener(destination = "${destination.queue.request}", containerFactory = "replyJmsListenerContainerFactory")
-    public void onMessage(Message message, Session session) throws JMSException {
-        readMessage((TextMessage) message, session);
+    public void onMessage(final Message message, final Session session) throws JMSException {
+        if (message instanceof TextMessage) {
+            readMessage((TextMessage) message, session);
+        }
+        if (message instanceof BytesMessage) {
+            readMessage((BytesMessage) message, session);
+        }
     }
 
     @Override
-    protected void readMessage(TextMessage message, Session session) throws JMSException {
-        final var messageText = getInformation(message, TextMessage::getText).orElse("");
+    protected void readMessage(final TextMessage message, final Session session) throws JMSException {
+        final var messageText = getInformation(message, textMessage -> ((TextMessage) textMessage).getText()).orElse("");
+        if (isDeliveryCountExceededOf(message)) {
+            reportMessageAsError(messageText, requestQueue);
+        } else {
+            processMessage(message.getJMSCorrelationID(), messageText, session, message.getJMSReplyTo());
+        }
+    }
+
+    protected void readMessage(final BytesMessage message, final Session session) throws JMSException {
+        final var messageText = getInformation(message, bytesMessage -> ((BytesMessage) bytesMessage).readUTF()).orElse("");
         if (isDeliveryCountExceededOf(message)) {
             reportMessageAsError(messageText, requestQueue);
         } else {

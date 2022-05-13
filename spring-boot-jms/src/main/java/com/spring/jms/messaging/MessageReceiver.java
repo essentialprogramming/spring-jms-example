@@ -41,7 +41,7 @@ public class MessageReceiver extends QueueListener {
 
     @Override
     protected void readMessage(final TextMessage message, final Session session) {
-        final var messageText = getInformation(message, TextMessage::getText).orElse("");
+        final var messageText = getInformation(message, textMessage -> ((TextMessage) textMessage).getText()).orElse("");
         if (isDeliveryCountExceededOf(message)) {
             reportMessageAsError(messageText, destination);
         } else {

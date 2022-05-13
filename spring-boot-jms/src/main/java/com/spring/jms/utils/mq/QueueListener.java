@@ -4,6 +4,7 @@ package com.spring.jms.utils.mq;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.jms.JMSException;
+import javax.jms.Message;
 import javax.jms.Session;
 import javax.jms.TextMessage;
 import java.util.Optional;
@@ -14,7 +15,7 @@ public abstract class QueueListener {
     private static final int DELIVERY_COUNT_LIMIT = 10;
 
 
-    protected Optional<String> getInformation(final TextMessage message, final JmsFunction func) {
+    protected Optional<String> getInformation(final Message message, final JmsFunction func) {
         try {
             return message != null ? Optional.ofNullable(func.apply(message)) : Optional.empty();
         } catch (final JMSException e) {
@@ -23,7 +24,7 @@ public abstract class QueueListener {
         }
     }
 
-    protected boolean isDeliveryCountExceededOf(final TextMessage message) {
+    protected boolean isDeliveryCountExceededOf(final Message message) {
         final Optional<Integer> deliveryCount = getDeliveryCountOf(message);
         return deliveryCount.isPresent() && deliveryCount.get() > DELIVERY_COUNT_LIMIT;
     }
@@ -32,7 +33,7 @@ public abstract class QueueListener {
         log.warn("Delivery count of message is exceeded. Message can't be processed.");
     }
 
-    private Optional<Integer> getDeliveryCountOf(final TextMessage message) {
+    private Optional<Integer> getDeliveryCountOf(final Message message) {
         try {
             // https://stackoverflow.com/questions/28020111/when-jmsxdeliverycount-get-increased
             return Optional.of(message.getIntProperty("JMSXDeliveryCount"));
@@ -45,7 +46,7 @@ public abstract class QueueListener {
     protected abstract void readMessage(final TextMessage message, final Session session) throws JMSException;
 
     protected interface JmsFunction {
-        String apply(TextMessage message) throws JMSException;
+        String apply(Message message) throws JMSException;
     }
 
 }
