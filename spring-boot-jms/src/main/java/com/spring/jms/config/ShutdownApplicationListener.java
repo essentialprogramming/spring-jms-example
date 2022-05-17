@@ -21,7 +21,11 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class ShutdownApplicationListener implements ApplicationListener<ContextClosedEvent> {
 
+    final CachingConnectionFactory cachingConnectionFactory;
+
     public void onApplicationEvent(@NonNull ContextClosedEvent event) {
         log.info("Application shutting down..");
+        cachingConnectionFactory.resetConnection();
+
     }
 }
