@@ -26,6 +26,5 @@ public class ShutdownApplicationListener implements ApplicationListener<ContextC
     public void onApplicationEvent(@NonNull ContextClosedEvent event) {
         log.info("Application shutting down..");
         cachingConnectionFactory.resetConnection();
-
     }
 }

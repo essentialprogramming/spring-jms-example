@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import javax.jms.Destination;
 import javax.jms.JMSException;
 import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
 
 @Service
 @RequiredArgsConstructor
@@ -34,5 +35,11 @@ public class MessageService {
 
     public String sendAndReceive(final Serializable message) throws JMSException {
         return sender.sendAndReceive(requestQueue, responseQueue, (String) message);
+    }
+
+    public String sendAndReceiveBytes(final Serializable message) throws JMSException {
+
+        byte[] response = sender.sendAndReceive(requestQueue, responseQueue,  ((String) message).getBytes(StandardCharsets.UTF_8));
+        return new String(response, StandardCharsets.UTF_8);
     }
 }

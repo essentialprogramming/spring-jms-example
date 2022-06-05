@@ -52,7 +52,7 @@ public class JmsController {
             }
     )
     public String sendAndReceive(@Valid @RequestParam String message) throws JMSException {
-        return messageService.sendAndReceive(message);
+        return messageService.sendAndReceiveBytes(message);
     }
 
 }

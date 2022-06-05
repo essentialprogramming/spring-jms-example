@@ -1,7 +1,9 @@
 package com.spring.jms.messaging;
 
+import com.spring.jms.model.MessageType;
 import com.spring.jms.utils.mq.QueueListener;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import lombok.var;
 import org.springframework.beans.factory.annotation.Value;
@@ -9,6 +11,7 @@ import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
 
 import javax.jms.*;
+import java.nio.charset.StandardCharsets;
 
 @Component
 @RequiredArgsConstructor
@@ -41,45 +44,75 @@ public class MessageReplier extends QueueListener {
         if (isDeliveryCountExceededOf(message)) {
             reportMessageAsError(messageText, requestQueue);
         } else {
-            processMessage(message.getJMSCorrelationID(), messageText, session, message.getJMSReplyTo());
+            processMessage(MessageType.TEXT, messageText, session, message.getJMSCorrelationID(), message.getJMSReplyTo());
         }
     }
 
     protected void readMessage(final BytesMessage message, final Session session) throws JMSException {
-        final var messageText = getInformation(message, bytesMessage -> ((BytesMessage) bytesMessage).readUTF()).orElse("");
+        final var messageText = getInformation(message, bytesMessage -> readMessageAsString((BytesMessage) bytesMessage)).orElse("");
         if (isDeliveryCountExceededOf(message)) {
             reportMessageAsError(messageText, requestQueue);
         } else {
-            processMessage(message.getJMSCorrelationID(), messageText, session, message.getJMSReplyTo());
+            processMessage(MessageType.BYTES, messageText, session, message.getJMSCorrelationID(), message.getJMSReplyTo());
         }
     }
 
-    protected void processMessage(final String correlationID, final String message,
-                                  final Session session, final Destination replyToDestination) throws JMSException {
+    protected void processMessage(
+            final MessageType messageType, final String message, final Session session,
+            final String correlationID, final Destination replyToDestination) throws JMSException {
         log.info("Received message with JMSCorrelationID {} : {}", correlationID, message);
 
         // Send a reply message
         final MessageProducer replyDestination = session.createProducer(replyToDestination);
-        final TextMessage replyMsg = handleMessage(message, session);
+        final Message replyMsg = handleMessage(messageType, message, session);
         replyMsg.setJMSCorrelationID(correlationID);
         replyDestination.send(replyMsg);
 
         log.info("Sending reply message");
     }
 
-    private TextMessage handleMessage(final String message, final Session session) throws JMSException {
-        final TextMessage replyMsg = session.createTextMessage("Received: " + message);
+    private Message handleMessage(final MessageType messageType, final String message, final Session session) throws JMSException {
         if (cannotProcessMessage(message)) {
-            return handleErrorMessage(message, session);
+            return handleErrorMessage(messageType, message, session);
         }
-        return replyMsg;
+
+        return response(messageType, "Received: " + message, session);
     }
 
     private boolean cannotProcessMessage(final String message) {
         return false;
     }
 
-    private TextMessage handleErrorMessage(final String message, final Session session) throws JMSException {
-        return session.createTextMessage("Error occurred during processing: " + message);
+    private Message handleErrorMessage(final MessageType messageType, final String message, final Session session) throws JMSException {
+        return response(messageType, "Error occurred during processing: " + message, session);
+    }
+
+    private static Message response(
+            final MessageType messageType,
+            final String message,
+            final Session session) throws JMSException
+    {
+        switch (messageType) {
+            case TEXT:
+                return session.createTextMessage(message);
+            case BYTES:
+                final BytesMessage bytesMessage = session.createBytesMessage();
+                bytesMessage.writeBytes(message.getBytes(StandardCharsets.UTF_8));
+
+                return bytesMessage;
+            default:
+                throw new IllegalArgumentException(); // Can never happen;
+        }
+    }
+
+    @SneakyThrows
+    private static String readMessageAsString(final BytesMessage message) {
+        message.reset(); //Puts the message body in read-only mode and repositions the stream of bytes to the beginning
+
+        int messageLength = ((int) message.getBodyLength());
+        byte[] messageBytes = new byte[messageLength];
+        message.readBytes(messageBytes, messageLength);
+
+        return new String(messageBytes, StandardCharsets.UTF_8).trim();
     }
 }
